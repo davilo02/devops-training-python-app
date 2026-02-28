@@ -46,5 +46,17 @@ pipeline {
             }
         }
 
+        stage('Build image') {
+            steps {
+                echo "Building Docker image..."
+                script {
+                    // Construimos la imagen usando Dockerfile del repo
+                    def imageName = "python-app:${env.BUILD_NUMBER}"
+                    docker.build(imageName, "-f devops/Dockerfile .")
+                    echo "Image built: ${imageName}"
+                }
+            }
+        }
+
     }
 }
