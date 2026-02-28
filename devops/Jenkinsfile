@@ -29,9 +29,8 @@ pipeline {
                     apt-get update && apt-get install -y make
                     python -m venv .venv
                     .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt
-                    .venv/bin/pip install flake8
-                    make lint || true
+                    .venv/bin/pip install -r requirements.txt flake8
+                    .venv/bin/flake8 src/ || true
                 '''
             }
         }
@@ -45,11 +44,14 @@ pipeline {
             }
             steps {
                 sh '''
+                    # Instala make y la virtualenv si no existe
                     apt-get update && apt-get install -y make
                     python -m venv .venv
                     .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt
-                    pytest --junitxml=test-reports/results.xml
+                    .venv/bin/pip install -r requirements.txt pytest
+
+                    # Ejecuta pytest usando la virtualenv
+                    .venv/bin/pytest --junitxml=test-reports/results.xml
                 '''
             }
         }
@@ -67,4 +69,3 @@ pipeline {
             echo "Pipeline failed!"
         }
     }
-}
