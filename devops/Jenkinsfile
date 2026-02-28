@@ -17,7 +17,9 @@ pipeline {
             }
             steps {
                 sh 'python --version'
-                sh 'echo "Stage dummy. Aquí ejecutarás los tests unitarios."'
+                sh 'pip install -r requirements.txt || true'
+                sh 'pip install pytest'
+                sh 'pytest'
             }
         }
     }
