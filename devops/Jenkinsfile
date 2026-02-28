@@ -1,14 +1,14 @@
+// ---------- Función reutilizable ----------
+def runInDocker(String image, Closure body) {
+    docker.image(image).inside('-u 0:0') {
+        body()
+    }
+}
+
 pipeline {
     agent any
-    environment {
-        VENV = ".venv"
-    }
+
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Info') {
             steps {
@@ -18,42 +18,33 @@ pipeline {
         }
 
         stage('Lint') {
-            agent {
-                docker {
-                    image 'python:3.11-slim'
-                    args '-u 0:0'
-                }
-            }
             steps {
-                sh '''
-                    apt-get update && apt-get install -y make
-                    python -m venv .venv
-                    .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt flake8
-                    .venv/bin/flake8 src/ || true
-                '''
+                echo "Running Lint..."
+                runInDocker('python:3.11-slim') {
+                    sh '''
+                        python -m venv .venv
+                        .venv/bin/pip install --upgrade pip
+                        .venv/bin/pip install -r requirements.txt flake8
+                        .venv/bin/flake8 src/ || true
+                    '''
+                }
             }
         }
 
         stage('Test') {
-            agent {
-                docker {
-                    image 'python:3.11-slim'
-                    args '-u 0:0'
-                }
-            }
             steps {
-                sh '''
-                    # Instala make y la virtualenv si no existe
-                    apt-get update && apt-get install -y make
-                    python -m venv .venv
-                    .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt pytest
-
-                    # Ejecuta pytest usando la virtualenv
-                    .venv/bin/pytest --junitxml=test-reports/results.xml
-                '''
+                echo "Running Tests..."
+                runInDocker('python:3.11-slim') {
+                    sh '''
+                        python -m venv .venv
+                        .venv/bin/pip install --upgrade pip
+                        .venv/bin/pip install -r requirements.txt pytest
+                        .venv/bin/pytest --junitxml=test-reports/results.xml
+                    '''
+                }
+                junit 'test-reports/results.xml'
             }
         }
+
     }
 }
