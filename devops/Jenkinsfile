@@ -56,17 +56,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            junit '**/test-reports/*.xml'
-            archiveArtifacts artifacts: 'coverage*.xml, coverage_html/**/*', allowEmptyArchive: true
-        }
-        success {
-            echo "Pipeline finished successfully!"
-        }
-        failure {
-            echo "Pipeline failed!"
-        }
-    }
 }
