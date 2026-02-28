@@ -1,7 +1,15 @@
 pipeline {
     agent any
-
+    environment {
+        VENV = ".venv"
+    }
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Info') {
             steps {
                 echo "Job: ${env.JOB_NAME}"
@@ -9,18 +17,52 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Lint') {
             agent {
                 docker {
-                    image 'python:3.6-slim'
+                    image 'python:3.11-slim'
+                    args '-u 0:0'
                 }
             }
             steps {
-                sh 'python --version'
-                sh 'pip install -r requirements.txt || true'
-                sh 'pip install pytest'
-                sh 'pytest'
+                sh '''
+                    python -m venv .venv
+                    .venv/bin/pip install --upgrade pip
+                    .venv/bin/pip install -r requirements.txt
+                    make lint
+                '''
+            }
+        }
+
+        stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    args '-u 0:0'
+                }
+            }
+            steps {
+                sh '''
+                    .venv/bin/pip install -r requirements.txt
+                    make test
+                '''
             }
         }
     }
+    post {
+        always {
+            junit '**/test-reports/*.xml' // Si pytest genera XML
+            archiveArtifacts artifacts: 'coverage*.xml, coverage_html/**/*', allowEmptyArchive: true
+        }
+        success {
+            echo "Pipeline finished successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
 }
+
+
+
+
