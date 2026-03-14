@@ -3,12 +3,8 @@ from flask import Flask
 import psycopg2
 import json
 import os
-
 app = Flask(__name__)
-
 # ~comment
-
-
 def favorite_colors() -> List[Dict]:
     config = {
         "user": os.environ.get("DB_USER", "root"),
@@ -23,14 +19,12 @@ def favorite_colors() -> List[Dict]:
     results = [{name: color} for (name, color) in cursor]
     cursor.close()
     connection.close()
-
     return results
-
-
 @app.route("/")
 def index() -> str:
     return json.dumps({"favorite_colors": favorite_colors()})
-
-
+@app.route("/health")
+def health() -> str:
+    return json.dumps({"status": "ok"})
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
