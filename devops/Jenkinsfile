@@ -54,7 +54,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker compose -f docker-compose.yml up -d app'
+                        sh 'docker compose -f docker-compose.yml up -d --no-deps app'
                         sleep 20
                         sh 'docker exec my-flask-app-dc curl -f http://localhost:5000/'
                     } finally {
