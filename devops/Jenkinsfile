@@ -4,19 +4,15 @@ def runInDocker(String image, Closure body) {
         body()
     }
 }
-
 pipeline {
     agent any
-
     stages {
-
         stage('Info') {
             steps {
                 echo "Job: ${env.JOB_NAME}"
                 echo "Build: ${env.BUILD_NUMBER}"
             }
         }
-
         stage('Lint') {
             steps {
                 echo "Running Lint..."
@@ -30,7 +26,6 @@ pipeline {
                 }
             }
         }
-
         stage('Test') {
             steps {
                 echo "Running Tests..."
@@ -45,18 +40,28 @@ pipeline {
                 junit 'test-reports/results.xml'
             }
         }
-
         stage('Build image') {
             steps {
                 echo "Building Docker image..."
                 script {
-                    // Construimos la imagen usando Dockerfile del repo
                     def imageName = "python-app:${env.BUILD_NUMBER}"
                     docker.build(imageName, "-f devops/Dockerfile .")
                     echo "Image built: ${imageName}"
                 }
             }
         }
-
+        stage('CD') {
+            steps {
+                script {
+                    try {
+                        sh 'docker compose -f docker-compose.yml up -d app'
+                        sleep 20
+                        sh 'docker exec my-flask-app-dc curl -f http://localhost:5000/'
+                    } finally {
+                        sh 'docker compose -f docker-compose.yml down --volumes'
+                    }
+                }
+            }
+        }
     }
 }
