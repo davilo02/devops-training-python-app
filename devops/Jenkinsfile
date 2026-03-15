@@ -75,15 +75,41 @@ pipeline {
                     echo "Deploying to ${env.DEPLOY_ENV}"
                     echo "App URL: ${env.APP_URL}"
                     def project = env.DEPLOY_ENV.toLowerCase()
-                    try {
-                        sh "docker compose -p ${project} -f docker-compose.yml up -d --no-deps app"
-                        sleep 20
-                        sh "docker exec ${project}-app-1 python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""
-                    } finally {
-                        sh "docker compose -p ${project} -f docker-compose.yml down --volumes"
+                    sh "docker compose -p ${project} -f docker-compose.yml up -d --no-deps app"
+                    sleep 20
+                    sh "docker exec ${project}-app-1 python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""
+                }
+            }
+            post {
+                always {
+                    script {
+                        def project = (env.BRANCH_NAME == 'master') ? 'pro' : 'dev'
+                        sh "docker compose -p ${project} -f docker-compose.yml down --volumes || true"
+                        sh "docker rmi ${env.IMAGE_NAME} || true"
+                    }
+                }
+                success {
+                    echo 'SUCCESS'
+                }
+                failure {
+                    echo 'FAILURE'
+                    script {
+                        def project = (env.BRANCH_NAME == 'master') ? 'pro' : 'dev'
+                        sh "docker compose -p ${project} -f docker-compose.yml logs || true"
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline finalizado para ${env.IMAGE_NAME}"
+        }
+        success {
+            echo 'Pipeline SUCCESS'
+        }
+        failure {
+            echo 'Pipeline FAILURE'
         }
     }
 }
