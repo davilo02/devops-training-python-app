@@ -6,6 +6,9 @@ def runInDocker(String image, Closure body) {
 }
 pipeline {
     agent any
+    parameters {
+        booleanParam(name: 'RUN_CD', defaultValue: false, description: 'Ejecutar CD (solo develop/master)')
+    }
     stages {
         stage('Info') {
             steps {
@@ -52,12 +55,16 @@ pipeline {
         }
         stage('CD') {
             when {
-                anyOf {
-                    branch 'develop'
-                    branch 'master'
+                allOf {
+                    anyOf {
+                        branch 'develop'
+                        branch 'master'
+                    }
+                    expression { return params.RUN_CD }
                 }
             }
             steps {
+                echo "CD habilitado por parámetro RUN_CD=${params.RUN_CD}"
                 script {
                     env.DEPLOY_ENV = (env.BRANCH_NAME == 'master') ? 'PRO' : 'DEV'
                     echo "Deploying to ${env.DEPLOY_ENV}"
