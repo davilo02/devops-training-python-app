@@ -58,14 +58,16 @@ pipeline {
                 }
             }
             steps {
-                echo "CD enabled for branch: ${env.BRANCH_NAME}"
                 script {
+                    env.DEPLOY_ENV = (env.BRANCH_NAME == 'master') ? 'PRO' : 'DEV'
+                    echo "Deploying to ${env.DEPLOY_ENV}"
+                    def project = env.DEPLOY_ENV.toLowerCase()
                     try {
-                        sh 'docker compose -f docker-compose.yml up -d --no-deps app'
+                        sh "docker compose -p ${project} -f docker-compose.yml up -d --no-deps app"
                         sleep 20
-                        sh 'docker exec my-flask-app-dc python -c "import urllib.request; urllib.request.urlopen(\'http://localhost:5000/health\')"'
+                        sh "docker exec ${project}-app-1 python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""
                     } finally {
-                        sh 'docker compose -f docker-compose.yml down --volumes'
+                        sh "docker compose -p ${project} -f docker-compose.yml down --volumes"
                     }
                 }
             }
