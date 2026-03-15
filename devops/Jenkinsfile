@@ -51,7 +51,14 @@ pipeline {
             }
         }
         stage('CD') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'master'
+                }
+            }
             steps {
+                echo "CD enabled for branch: ${env.BRANCH_NAME}"
                 script {
                     try {
                         sh 'docker compose -f docker-compose.yml up -d --no-deps app'
