@@ -1,5 +1,5 @@
 # Práctica 3 - GitHub Actions
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -60,3 +60,23 @@ jobs:
 
       - name: Verify image
         run: docker images "${{ env.IMAGE_NAME }}"
+
+  cd:
+    name: CD
+    runs-on: ubuntu-latest
+    needs: [ci-build]
+    if: >
+      (github.ref_name == 'develop' || github.ref_name == 'master')
+      && inputs.RUN_CD == true
+    env:
+      DEPLOY_ENV: ${{ github.ref_name == 'master' && 'PRO' || 'DEV' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy (simulado)
+        run: |
+          echo "Deploying to ${{ env.DEPLOY_ENV }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Image:  ${{ env.IMAGE_NAME }}"
+          echo "URL:    ${{ env.APP_URL }}"
