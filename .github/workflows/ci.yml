@@ -1,10 +1,6 @@
-# Práctica 3 - GitHub Actions (dummy)
-#
-# Punto de partida: workflow mínimo para validar que Actions funciona en el repo.
-# En la Práctica 3 irás ampliando este workflow para llegar a CI/CD.
 
 # Práctica 3 - GitHub Actions
-name: CI (dummy)
+name: CI
 
 on:
   push:
@@ -19,12 +15,16 @@ on:
         default: false
 
 jobs:
-  dummy:
+  ci:
+    name: CI
     runs-on: ubuntu-latest
     steps:
-      - name: Mostrar contexto
-        run: |
-          echo "Repo: $GITHUB_REPOSITORY"
-          echo "Ref:  $GITHUB_REF"
-          echo "Branch: $GITHUB_REF_NAME"
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Info
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+          echo "SHA:    ${{ github.sha }}"
+          echo "OS:     ${{ runner.os }}"
+          echo "Runner: ${{ runner.name }}"
