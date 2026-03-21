@@ -48,3 +48,15 @@ jobs:
         run: |
           echo "RUN_CD:     ${{ inputs.RUN_CD }}"
           echo "DEPLOY_ENV: ${{ inputs.DEPLOY_ENV }}"
+
+      - name: Repository variables
+        run: |
+          echo "REGISTRY_HOST:  ${{ vars.REGISTRY_HOST }}"
+          echo "ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}"
+
+      - name: Secrets (enmascarados)
+        run: |
+          echo "REGISTRY_USER: ${{ secrets.REGISTRY_USER }}"
+          echo "REGISTRY_PASSWORD está configurado: ${{ secrets.REGISTRY_PASSWORD != '' }}"
+          echo "ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}"
+          echo "ARTIFACTORY_PASSWORD está configurado: ${{ secrets.ARTIFACTORY_PASSWORD != '' }}"
