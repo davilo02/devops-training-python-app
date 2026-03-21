@@ -12,6 +12,13 @@ on:
         description: 'Ejecutar CD (solo develop/master)'
         type: boolean
         default: false
+      DEPLOY_ENV:
+        description: 'Entorno de despliegue'
+        type: choice
+        options:
+          - DEV
+          - PRO
+        default: DEV
 
 env:
   IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
@@ -21,8 +28,6 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
-    env:
-      APP_URL: "http://localhost:5001/overridden"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,18 +39,12 @@ jobs:
           echo "OS:     ${{ runner.os }}"
           echo "Runner: ${{ runner.name }}"
 
-      - name: Variables de entorno (shell)
+      - name: Variables de entorno
         run: |
-          echo "IMAGE_NAME (shell): $IMAGE_NAME"
-          echo "APP_URL (shell):    $APP_URL"
+          echo "IMAGE_NAME: ${{ env.IMAGE_NAME }}"
+          echo "APP_URL:    ${{ env.APP_URL }}"
 
-      - name: Variables de entorno (context)
+      - name: Inputs (workflow_dispatch)
         run: |
-          echo "IMAGE_NAME (context): ${{ env.IMAGE_NAME }}"
-          echo "APP_URL (context):    ${{ env.APP_URL }}"
-
-      - name: Precedencia - step override
-        env:
-          APP_URL: "http://localhost:5001/step-level"
-        run: |
-          echo "APP_URL a nivel de step: $APP_URL"
+          echo "RUN_CD:     ${{ inputs.RUN_CD }}"
+          echo "DEPLOY_ENV: ${{ inputs.DEPLOY_ENV }}"
