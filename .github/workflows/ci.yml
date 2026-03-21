@@ -74,9 +74,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy (simulado)
+      - name: Build image (para compose)
+        run: docker build -t "${{ env.IMAGE_NAME }}" -f devops/Dockerfile .
+
+      - name: Deploy con Docker Compose
         run: |
           echo "Deploying to ${{ env.DEPLOY_ENV }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Image:  ${{ env.IMAGE_NAME }}"
-          echo "URL:    ${{ env.APP_URL }}"
+          docker compose up -d
+          sleep 10
+
+      - name: Test E2E (curl)
+        run: |
+          echo "Testing ${{ env.APP_URL }}"
+          curl -fsS "${{ env.APP_URL }}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up..."
+          docker compose down --volumes || true
+          docker rmi "${{ env.IMAGE_NAME }}" || true
