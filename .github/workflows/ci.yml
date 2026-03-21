@@ -1,4 +1,3 @@
-
 # Práctica 3 - GitHub Actions
 name: CI
 
@@ -14,10 +13,16 @@ on:
         type: boolean
         default: false
 
+env:
+  IMAGE_NAME: "contrerasadr/devops-training-python-app:0.0.1"
+  APP_URL: "http://localhost:5001/"
+
 jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
+    env:
+      APP_URL: "http://localhost:5001/overridden"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,3 +33,19 @@ jobs:
           echo "SHA:    ${{ github.sha }}"
           echo "OS:     ${{ runner.os }}"
           echo "Runner: ${{ runner.name }}"
+
+      - name: Variables de entorno (shell)
+        run: |
+          echo "IMAGE_NAME (shell): $IMAGE_NAME"
+          echo "APP_URL (shell):    $APP_URL"
+
+      - name: Variables de entorno (context)
+        run: |
+          echo "IMAGE_NAME (context): ${{ env.IMAGE_NAME }}"
+          echo "APP_URL (context):    ${{ env.APP_URL }}"
+
+      - name: Precedencia - step override
+        env:
+          APP_URL: "http://localhost:5001/step-level"
+        run: |
+          echo "APP_URL a nivel de step: $APP_URL"
